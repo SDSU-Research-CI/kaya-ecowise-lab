@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: jupyterpod-ssurakasi
+spec:
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nautilus.io/csu-tide
+                operator: Exists
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-L40
+      restartPolicy: Never
+      initContainers:
+      - name: take-data-dir-ownership
+        image: alpine:3
+        command: ["/bin/sh","-c","chown 0:100 /home/jovyan && chmod 775 /home/jovyan"] 
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: jovyan-home
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi
+      containers:
+      - name: gpu-container
+        image: kkricksdsu/kaya-notebook:v1.0
+        command: ["jupyter", "lab", "--ip='0.0.0.0'"]
+        resources:
+          limits:
+            cpu: "4"
+            memory: 8Gi
+            nvidia.com/gpu: 1
+            ephemeral-storage: 10Gi
+          requests:
+            cpu: "4"
+            memory: 8Gi
+            nvidia.com/gpu: 1
+            ephemeral-storage: 10Gi
+        volumeMounts:
+        - mountPath: /home/jovyan
+          name: jovyan-home
+        - mountPath: /home/jovyan/shared/
+          name: shared-data
+        - mountPath: /dev/shm
+          name: dshm
+      volumes:
+      - name: jovyan-home
+        persistentVolumeClaim:
+          claimName: jupyter-volume-ssurakasi
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: shared-data
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      tolerations:
+      - key: nautilus.io/csu-tide
+        operator: Exists
+        effect: NoSchedule
+      - key: nautilus.io/sdsu-fix
+        operator: Exists
+        effect: NoSchedule
