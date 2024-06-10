@@ -1,7 +1,18 @@
-# JupyterLab
-The following will guide users through scheduling and connecting to a JupyterLab instance.
+# JupyterLab Job
+The following guide will walk users through scheduling and connecting to a JupyterLab instance on the TIDE cluster.
 
 This guide assumes that the user has completed the [Getting Access](https://sdsu-research-ci.github.io/softwarefactory/gettingaccess) directions and installed [Kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) on their local machine.
+
+Please make sure to have a local copy of this repository. You can get this repo locally by cloning with git:
+```
+git clone https://github.com/SDSU-Research-CI/kaya-ecowise-lab.git
+```
+
+Before running the examples below, please open this repository in your terminal and navigate to the jupyterlab directory:
+
+```
+cd jupyterlab
+```
 
 ## Deploy
 
@@ -31,11 +42,24 @@ jupyter-volume-ssurakasi   Bound    pvc-861622d4-44ab-4523-b3e6-3eb3dd2548f0   2
 
 You will want to copy the value from the NAME column to be used in the next step.
 
-### Step 3: Schedule the JupyterLab Job
+### Step 3: Customize and Schedule the JupyterLab Job
 
-IMPORTANT: Create a copy of the jupyter-job-L40.yaml file and modify the "jupyterpod-username" name in the file (line 4) replacing "username" with your SDSUid prefix and "jupyter-volume-username" (line 50) replacing "jupyter-volume-username" with what you copied from the previous step. If you don't do this, you may conflict with someone else using the default name.
+#### Customize the Job
+IMPORTANT: Create a copy of the jupyter-job-L40.yaml file and modify the "jupyterpod-username" name in the file (line 4) replacing "username" with your SDSUid prefix and "jupyter-volume-username" (line 59) replacing "jupyter-volume-username" with what you copied from the previous step. If you don't do this, you may conflict with someone else using the default name.
 
-Schedule the job:
+Optional: You can increase the CPU, RAM and GPU resources on lines 38-48.
+Before increasing the defaults, please monitor your resource utilization using the dashboards below:
+- [CPU and RAM](https://grafana.nrp-nautilus.io/d/85a562078cdf77779eaa1add43ccec1e/kubernetes-compute-resources-namespace-pods?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace=sdsu-kaya-ecowise-lab)
+- [GPU](https://grafana.nrp-nautilus.io/d/dRG9q0Ymz/k8s-compute-resources-namespace-gpus?orgId=1&refresh=30s&var-namespace=sdsu-kaya-ecowise-lab)
+If you are above 90% utilization, then you might consider increasing the default resources.
+
+Requests are the minimum amount of resources your job needs in order to run.
+Limits are the maximum amount of resources that your job may consume.
+Limits for CPU and RAM must be less than or equal to 1.2x of the request. 
+- I.E: If you request 10Gi RAM, your max limit should be 12Gi RAM.
+
+#### Schedule the Job
+Schedule the job with the following command:
 
 ```
 kubectl create -f jupyter-job-L40.yaml -n sdsu-kaya-ecowise-lab

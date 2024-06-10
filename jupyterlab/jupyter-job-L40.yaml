@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: jupyterpod-ssurakasi
+  name: jupyterpod-username
 spec:
   template:
     spec:
@@ -33,7 +33,7 @@ spec:
             memory: 1Gi
       containers:
       - name: gpu-container
-        image: kkricksdsu/kaya-notebook:v1.0
+        image: kkricksdsu/kaya-notebook:v1.1
         command: ["jupyter", "lab", "--ip='0.0.0.0'"]
         resources:
           limits:
@@ -56,7 +56,7 @@ spec:
       volumes:
       - name: jovyan-home
         persistentVolumeClaim:
-          claimName: jupyter-volume-ssurakasi
+          claimName: jupyter-volume-username
       - name: shared-data
         persistentVolumeClaim:
           claimName: shared-data
